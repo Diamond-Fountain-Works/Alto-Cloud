@@ -76,6 +76,12 @@ LAN file sharing, local network file transfer, Wi-Fi file transfer, LocalSend al
 ./script/build_and_run.sh
 ```
 
+Package a local DMG:
+
+```bash
+./script/package_dmg.sh
+```
+
 Build only:
 
 ```bash
