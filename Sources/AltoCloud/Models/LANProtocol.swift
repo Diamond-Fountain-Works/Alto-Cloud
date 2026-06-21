@@ -1,13 +1,13 @@
 import Foundation
 
 enum LANProtocol {
-    static let version = "dt-lan-1"
-    static let serviceType = "_diamondtransfer._tcp"
+    static let version = "ac-lan-1"
+    static let serviceType = "_altocloud._tcp"
 }
 
 enum LANNodeRole: String, Codable, Hashable {
     case peer
-    case hub
+    case sharedCloud
 }
 
 struct LANNodeDescriptor: Codable, Identifiable, Hashable {
@@ -22,9 +22,9 @@ struct LANNodeDescriptor: Codable, Identifiable, Hashable {
 
 enum LANMessageType: String, Codable {
     case hello
-    case joinHub
-    case leaveHub
-    case hubSnapshot
+    case joinSharedCloud
+    case leaveSharedCloud
+    case sharedCloudSnapshot
     case uploadIntent
     case uploadAccepted
     case uploadRejected
@@ -45,7 +45,7 @@ struct LANHelloPayload: Codable {
     var node: LANNodeDescriptor
 }
 
-struct LANJoinHubPayload: Codable {
+struct LANJoinSharedCloudPayload: Codable {
     var deviceID: UUID
     var displayName: String
     var deviceKind: DeviceKind

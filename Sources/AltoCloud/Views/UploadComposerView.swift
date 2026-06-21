@@ -52,11 +52,11 @@ struct UploadComposerView: View {
 
             Picker("Mode", selection: $mode) {
                 Text("Normal").tag(FileMode.standard)
-                Text("一次性文件").tag(FileMode.oneTime)
+                Text("One-Time Drop").tag(FileMode.oneTimeDrop)
             }
             .pickerStyle(.segmented)
 
-            if mode == .oneTime {
+            if mode == .oneTimeDrop {
                 VStack(alignment: .leading, spacing: 10) {
                     Text("Visible to")
                         .font(.caption.weight(.semibold))
@@ -77,7 +77,7 @@ struct UploadComposerView: View {
             Button {
                 upload()
             } label: {
-                Label("Upload to Diamond Cloud", systemImage: "square.and.arrow.up")
+                Label("Drop to Shared Cloud", systemImage: "square.and.arrow.up")
             }
             .buttonStyle(.borderedProminent)
             .disabled(!canUpload)
@@ -97,7 +97,7 @@ struct UploadComposerView: View {
 
     private var canUpload: Bool {
         !fileName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-            && store.hubSession.remainingQuota >= Int64(fileSizeMB * 1_000_000)
+            && store.sharedCloudSession.remainingQuota >= Int64(fileSizeMB * 1_000_000)
             && (mode == .standard || !selectedTargets.isEmpty)
     }
 

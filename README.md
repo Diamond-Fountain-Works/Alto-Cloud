@@ -1,74 +1,77 @@
-# Diamond Transfer
+# Alto Cloud
 
-**LAN-first file sharing for nearby devices. Direct transfer when it is simple, Diamond Cloud when a group needs a shared local drop zone.**
+**Nearby file sharing without the internet. Use Quick Send for one-to-one delivery, or start a Shared Cloud when a group needs the same local drop zone.**
 
-Diamond Transfer is a native macOS prototype for local-network file transfer, designed with a roadmap toward iOS and Android. It combines LocalSend-style peer-to-peer transfer, AirDrop-like nearby discovery, and Diamond Cloud, a shared local session where one device becomes the Wi-Fi server for everyone nearby.
+Alto Cloud（高积云）is a native macOS prototype for local-network file sharing, with a roadmap toward iOS and Android. It combines nearby discovery, direct device-to-device delivery, and a temporary shared space hosted by one device on the same Wi-Fi.
 
-> Independent project. Diamond Transfer is not affiliated with LocalSend, Apple AirDrop, or Apple.
+> Independent project. Alto Cloud is not affiliated with LocalSend, Apple AirDrop, or Apple.
 
-## Why Diamond Transfer
+## Product Language
 
-Most file transfer tools are either one-to-one senders or cloud drives. Diamond Transfer sits between them:
+| Name | Meaning |
+| --- | --- |
+| **Quick Send** | Fast one-to-one delivery between nearby devices. |
+| **Shared Cloud** | A local group space hosted by one nearby device. |
+| **One-Time Drop** | A targeted file that is deleted after every selected recipient opens it. |
 
-- Use **Direct Transfer** for quick device-to-device sending.
-- Use **Diamond Cloud** when multiple devices need the same shared session.
-- Use **One-Time Files** when files should disappear from Diamond Cloud after selected devices have opened them.
-- Keep everything **local-first** on the same Wi-Fi before adding any remote cloud layer.
+## Why Alto Cloud
+
+Most file-sharing tools are either one-to-one senders or internet cloud drives. Alto Cloud supports both nearby workflows:
+
+- Use **Quick Send** when one device needs to send directly to another.
+- Start a **Shared Cloud** when several devices need the same local sharing session.
+- Use a **One-Time Drop** when a file should disappear after all selected recipients open it.
+- Keep traffic local-first on the same Wi-Fi, without requiring an internet cloud.
 
 ## Key Features
 
 | Area | What it does |
 | --- | --- |
-| Nearby discovery | Finds Diamond Transfer peers and Diamond Cloud sessions on the same Wi-Fi with Bonjour/mDNS. |
-| Direct transfer | Keeps a LocalSend-style peer target for one-to-one transfers. |
-| Diamond Cloud | Lets one device act as a shared local server for multiple devices. |
-| Dual identity | A Diamond Cloud host remains discoverable as both a peer and a shared session. |
+| Nearby discovery | Finds Alto Cloud devices and Shared Cloud sessions on the same Wi-Fi with Bonjour/mDNS. |
+| Quick Send | Keeps a nearby peer target available for one-to-one delivery. |
+| Shared Cloud | Lets one device act as a local sharing server for multiple devices. |
+| Dual identity | A Shared Cloud host remains available as a Quick Send target. |
 | Storage quota | Shows available disk space and lets the host cap session storage. |
-| Local folder | Stores shared files in a visible local folder chosen by the user. |
-| One-time files | Allows the sender to choose visible devices; deletes after all selected devices open the file. |
+| Local folder | Stores shared files in a visible local folder chosen by the host. |
+| One-Time Drop | Limits visibility to selected devices and deletes after every target opens the file. |
 | macOS menu bar | Closing the main window hides the Dock icon while the menu bar item stays alive. |
-| Custom icon | Uses the Diamond Transfer black-and-white logo for the app and menu bar template icon. |
 
 ## Current Prototype
 
-The current macOS demo already implements real LAN discovery plumbing:
+The macOS demo implements the LAN discovery foundation:
 
-- `Network.framework` Bonjour/mDNS browser on `_diamondtransfer._tcp`
-- Always-on peer advertisement
-- Diamond Cloud advertisement when the shared session starts
-- A protocol draft for `hello`, `joinHub`, `uploadIntent`, `fileViewed`, and `fileDeleted`
-- Native SwiftUI macOS shell with Dock/menu-bar behavior
+- `Network.framework` Bonjour/mDNS browser on `_altocloud._tcp`
+- Always-on Quick Send peer advertisement
+- Shared Cloud advertisement while a shared session is active
+- Protocol messages for `hello`, `joinSharedCloud`, `uploadIntent`, `fileViewed`, and `fileDeleted`
+- Native SwiftUI macOS shell with Dock and menu-bar behavior
 
-File payload transfer is still simulated in UI state. The next implementation step is the real control + payload pipeline:
+File payload transfer is still simulated in UI state. The next implementation step is the real control and payload pipeline:
 
 ```text
-joinHub -> uploadIntent -> uploadAccepted -> file stream -> fileViewed -> fileDeleted
+joinSharedCloud -> uploadIntent -> uploadAccepted -> file stream -> fileViewed -> fileDeleted
 ```
 
-## Screens and Workflows
+## Workflows
 
-### Direct Peer Transfer
+### Quick Send
 
-Each app instance advertises a peer node. Nearby devices can discover it and use it as a direct transfer target.
+Each app instance advertises a nearby peer node. Other Alto Cloud devices can discover it and use it as a direct delivery target.
 
-### Diamond Cloud
+### Shared Cloud
 
-One device can start Diamond Cloud. Other devices see it under shared sessions and can join the same local drop zone.
+One device starts a Shared Cloud. Other nearby devices can join the same local drop zone while the host controls its folder and storage quota.
 
-### One-Time Files
+### One-Time Drop
 
-A sender can mark a file as one-time and choose which Diamond Cloud devices can see it. Diamond Cloud tracks viewed state per selected device and deletes the file after everyone in that target set opens it.
+The sender selects which devices can see a drop. Alto Cloud records open state for each selected recipient and removes the file after everyone in that target set has opened it.
 
-## Multilingual Overview
+## Documentation
 
 - [中文功能介绍](docs/features.zh-CN.md)
 - [English feature overview](docs/features.en.md)
 - [日本語の機能紹介](docs/features.ja.md)
 - [LAN protocol draft](docs/lan-protocol.md)
-
-## Search Keywords
-
-LAN file sharing, local network file transfer, Wi-Fi file transfer, LocalSend alternative, AirDrop alternative, peer-to-peer file transfer, nearby device discovery, Bonjour mDNS, macOS file sharing, Diamond Cloud session, one-time files, private local cloud, local-first file transfer.
 
 ## Run
 

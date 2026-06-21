@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-APP_NAME="Diamond Transfer"
+APP_NAME="Alto Cloud"
 APP_BUNDLE="$ROOT_DIR/dist/$APP_NAME.app"
 DMG_DIR="$ROOT_DIR/dist/dmg"
 DMG_PATH="$ROOT_DIR/dist/$APP_NAME.dmg"

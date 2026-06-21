@@ -2,9 +2,9 @@
 set -euo pipefail
 
 MODE="${1:-run}"
-APP_NAME="DiamondTransfer"
-APP_DISPLAY_NAME="Diamond Transfer"
-BUNDLE_ID="com.diamondtransfer.prototype"
+APP_NAME="AltoCloud"
+APP_DISPLAY_NAME="Alto Cloud"
+BUNDLE_ID="com.diamondfountainworks.altocloud"
 MIN_SYSTEM_VERSION="14.0"
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -15,7 +15,7 @@ APP_MACOS="$APP_CONTENTS/MacOS"
 APP_RESOURCES="$APP_CONTENTS/Resources"
 APP_BINARY="$APP_MACOS/$APP_NAME"
 INFO_PLIST="$APP_CONTENTS/Info.plist"
-ICON_SOURCE="$ROOT_DIR/363E346C-AE73-4D0C-B611-FEB4302032D4_1_105_c.jpeg"
+ICON_SOURCE="$ROOT_DIR/alto-cloud-logo.jpeg"
 ICONSET="$DIST_DIR/AppIcon.iconset"
 ICON_FILE="$APP_RESOURCES/AppIcon.icns"
 MENU_BAR_ICON="$APP_RESOURCES/MenuBarIcon.png"
@@ -74,10 +74,10 @@ cat >"$INFO_PLIST" <<PLIST
   <key>NSPrincipalClass</key>
   <string>NSApplication</string>
   <key>NSLocalNetworkUsageDescription</key>
-  <string>Diamond Transfer uses the local network to discover nearby devices and Diamond Cloud sessions.</string>
+  <string>Alto Cloud uses the local network for Quick Send and to discover Shared Cloud sessions.</string>
   <key>NSBonjourServices</key>
   <array>
-    <string>_diamondtransfer._tcp</string>
+    <string>_altocloud._tcp</string>
   </array>
 </dict>
 </plist>

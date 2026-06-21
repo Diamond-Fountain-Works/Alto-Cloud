@@ -1,94 +1,44 @@
-# Diamond Transfer Feature Overview
+# Alto Cloud Feature Overview
 
-**Diamond Transfer is a LAN-first native file sharing app: direct peer transfer when two devices just need to send files, and Diamond Cloud sessions when a group needs a shared local drop zone.**
+**Alto Cloud is a LAN-first native file-sharing app: use Quick Send between two nearby devices, or start a Shared Cloud for a group.**
 
-It is not a traditional cloud drive. It is built for local, fast, controlled file exchange between nearby devices on the same Wi-Fi network.
+Alto Cloud is designed for homes, meetings, classrooms, studios, and production sites where devices need to exchange files quickly without accounts or an internet cloud.
 
-## Product Positioning
+## Product Model
 
-Diamond Transfer = peer-to-peer transfer + optional shared Diamond Cloud sessions.
+Alto Cloud = **Quick Send + optional Shared Cloud sessions**.
 
-It is designed for:
+- **Quick Send** is one-to-one nearby delivery.
+- **Shared Cloud** is a temporary local sharing space hosted by one device.
+- **One-Time Drop** is deleted after every selected recipient opens it.
 
-- Sharing photos, videos, and documents between personal devices
-- Collecting files from multiple people in a meeting
-- Classroom and workshop file exchange
-- Photo shoot and studio workflows where a Mac, NAS, or desktop becomes a local drop zone
-- Local transfer without cloud accounts or public internet routing
+## Core Features
 
-## Feature Matrix
-
-| Feature | Description |
+| Feature | Behavior |
 | --- | --- |
-| Nearby discovery | Discovers Diamond Transfer devices on the same Wi-Fi with Bonjour/mDNS. |
-| Direct transfer | Keeps a LocalSend-style one-to-one transfer path. |
-| Diamond Cloud | Lets one device become a local server for a shared session. |
-| Dual identity | A Diamond Cloud host is still visible as a direct peer. |
-| Storage quota | Shows available disk space and caps Diamond Cloud session storage. |
-| Local folder | Stores shared files in a visible local folder chosen by the host. |
-| One-time files | Sender chooses visible devices; Diamond Cloud deletes after every target device opens the file. |
-| macOS menu bar | Closing the main window hides the Dock icon while the menu bar item remains available. |
-| Native app shell | Current prototype is a SwiftUI macOS app. |
+| Same-Wi-Fi discovery | Discovers Alto Cloud devices with Bonjour/mDNS. |
+| Quick Send | Keeps each device available as a direct delivery target. |
+| Shared Cloud | Turns one device into a local server for a group session. |
+| Dual identity | A Shared Cloud host remains available through Quick Send. |
+| Storage quota | Limits how much local disk a Shared Cloud can consume. |
+| Visible local folder | Lets the host choose where shared files are stored. |
+| One-Time Drop | Restricts visibility and deletes after all selected devices open the file. |
 
-## Direct Peer Transfer
+## Shared Cloud Storage
 
-Every app instance publishes a peer node on the local network. Other devices can discover it and use it as a direct transfer target.
+Before starting a Shared Cloud, the host can review available disk capacity, choose a folder, and set a session quota. Shared files remain on the host device rather than being uploaded to a public cloud.
 
-Best for:
+## One-Time Drop Rule
 
-- Mac to iPhone
-- Android to Mac
-- Laptop to laptop
+The sender chooses the target devices. Devices that join later do not automatically receive access. Alto Cloud removes the drop only after every selected target has opened it.
 
-## Diamond Cloud
+This is a retention rule, not DRM. It does not prevent screenshots, external recording, or copying after a file is opened.
 
-Any device can start Diamond Cloud. When active, that device has two roles:
+## LAN Foundation
 
-- **Peer**: still discoverable for direct transfer
-- **Diamond Cloud server**: a local sharing server for a group session
+- Service type: `_altocloud._tcp`
+- Always-on Quick Send peer node
+- Additional Shared Cloud node while the session is active
+- One Mac can appear as both a Quick Send target and a Shared Cloud host
 
-Other devices see:
-
-- **Nearby Devices**
-- **Shared Diamond Cloud sessions**
-
-## Diamond Cloud Storage Control
-
-Before starting a Diamond Cloud session, the host can review and configure:
-
-- Available disk space
-- local folder location
-- Maximum storage quota for this session
-
-This prevents Diamond Cloud from consuming unlimited local disk space.
-
-## One-Time Files
-
-Before upload, a sender can mark a file as one-time.
-
-Rules:
-
-- The sender selects which Diamond Cloud devices can see the file
-- Only selected devices see it in their file list
-- The file is marked with a red “一次性文件” label
-- Diamond Cloud records viewed state for every target device
-- After every selected device opens the file, Diamond Cloud deletes it
-- Devices that join later do not automatically get access to old one-time files
-
-This is a Diamond Cloud retention rule, not DRM. It does not claim to block screenshots, external recording, or copying after viewing.
-
-## Current Prototype Status
-
-The current macOS demo already implements real LAN discovery and advertisement:
-
-- `Network.framework` with Bonjour/mDNS
-- Service type: `_diamondtransfer._tcp`
-- Always-on peer node
-- Additional Diamond Cloud node when the shared session starts
-- One Mac can appear as both a direct peer and a Diamond Cloud host
-
-File-byte transfer is still simulated in UI state. The next step is a real TCP control channel and streaming payload transfer.
-
-## Technical Keywords
-
-LAN file sharing, Wi-Fi file transfer, LocalSend alternative, AirDrop alternative, peer-to-peer transfer, Diamond Cloud session, Bonjour, mDNS, Network.framework, one-time files, private local cloud, local-first file transfer.
+The current prototype implements discovery and simulated file state. Real control-channel and payload streaming are the next engineering steps.

@@ -41,7 +41,7 @@ struct TopStatusBar: View {
     private var titleBlock: some View {
         HStack(spacing: 14) {
             HStack(spacing: 8) {
-                Image(systemName: "diamond")
+                Image(systemName: "cloud")
                     .foregroundStyle(.blue)
                 Text(title)
                     .font(.headline)
@@ -61,11 +61,11 @@ struct TopStatusBar: View {
         .frame(maxWidth: 210)
     }
 
-    private var hubButton: some View {
+    private var sharedCloudButton: some View {
         Button {
-            store.toggleHub()
+            store.toggleSharedCloud()
         } label: {
-            Label(store.hubSession.isActive ? "Stop Cloud" : "Start Cloud", systemImage: store.hubSession.isActive ? "xmark.circle" : "antenna.radiowaves.left.and.right")
+            Label(store.sharedCloudSession.isActive ? "Stop Shared Cloud" : "Start Shared Cloud", systemImage: store.sharedCloudSession.isActive ? "xmark.circle" : "antenna.radiowaves.left.and.right")
                 .lineLimit(1)
         }
         .buttonStyle(.borderedProminent)
@@ -79,10 +79,10 @@ struct TopStatusBar: View {
 
             LANStatusChip(title: "Browser", value: store.lanBrowserState)
             LANStatusChip(title: "Peer", value: store.peerAdvertiseState)
-            LANStatusChip(title: "Cloud", value: store.hubAdvertiseState)
+            LANStatusChip(title: "Shared Cloud", value: store.sharedCloudAdvertiseState)
 
             devicePicker
-            hubButton
+            sharedCloudButton
         }
     }
 
@@ -90,9 +90,9 @@ struct TopStatusBar: View {
         HStack(spacing: 12) {
             titleBlock
             Spacer()
-            LANStatusDot(value: store.hubSession.isActive ? store.hubAdvertiseState : store.peerAdvertiseState)
+            LANStatusDot(value: store.sharedCloudSession.isActive ? store.sharedCloudAdvertiseState : store.peerAdvertiseState)
             devicePicker
-            hubButton
+            sharedCloudButton
         }
     }
 
@@ -102,8 +102,8 @@ struct TopStatusBar: View {
             "Control Center"
         case .peer:
             "Device"
-        case .hub:
-            "Diamond Cloud"
+        case .sharedCloud:
+            "Shared Cloud"
         }
     }
 }
@@ -148,8 +148,8 @@ private struct DetailRouterView: View {
             OverviewView(store: store)
         case .peer(let id):
             PeerDetailView(store: store, deviceID: id)
-        case .hub:
-            HubConsoleView(store: store)
+        case .sharedCloud:
+            SharedCloudConsoleView(store: store)
         }
     }
 }

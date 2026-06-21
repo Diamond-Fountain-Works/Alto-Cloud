@@ -1,92 +1,78 @@
-# Diamond Transfer LAN Protocol Draft
+# Alto Cloud LAN Protocol Draft
 
-## Transport Layers
+## Layers
 
-Diamond Transfer separates LAN behavior into three layers:
+Alto Cloud separates LAN behavior into three layers:
 
-1. Discovery: Bonjour/mDNS on `_diamondtransfer._tcp`.
-2. Control: TCP JSON envelopes for Diamond Cloud session and file metadata.
-3. Payload: future file-byte transfer, either length-prefixed TCP streams or chunked upload streams.
+1. Discovery: Bonjour/mDNS on `_altocloud._tcp`.
+2. Control: TCP JSON envelopes for Shared Cloud membership and file metadata.
+3. Payload: future length-prefixed or chunked file streams.
 
-The current macOS demo implements layer 1 and defines layer 2 message shapes. File payloads are still simulated in UI state.
+The current prototype implements discovery and the initial message model. File bytes are still simulated.
 
-## Node Model
+## Node Roles
 
-Every app instance can advertise more than one node:
+- `peer`: always advertised while Alto Cloud is running; used by Quick Send.
+- `sharedCloud`: advertised only while a Shared Cloud session is active.
 
-- Peer node: always advertised while the app is running.
-- Diamond Cloud node: advertised only while Diamond Cloud is enabled.
+One device can therefore appear as both a Quick Send target and a Shared Cloud host.
 
-This lets one device appear as both:
-
-- a direct transfer target
-- a shared Diamond Cloud session host
-
-## Bonjour Service
+## Bonjour Identity
 
 Service type:
 
 ```text
-_diamondtransfer._tcp
+_altocloud._tcp
 ```
 
-Service name format:
+Service-name format:
 
 ```text
-DT|<role>|<compact-uuid>|<device-kind>
+AC|<role>|<compact-uuid>|<device-kind>
 ```
 
 Example:
 
 ```text
-DT|hub|4F1C2B0A3D224E089C38797D361F6A13|mac
+AC|sharedCloud|4F1C2B0A3D224E089C38797D361F6A13|mac
 ```
 
-TXT records are published as optional metadata:
+TXT records include:
 
-- `protocol`: `dt-lan-1`
-- `node`: full UUID
-- `role`: `peer` or `hub`
-- `name`: display name
-- `kind`: device kind
+- `protocol`
+- `node`
+- `role`
+- `name`
+- `kind`
 
-The current implementation parses the service name first so discovery does not depend on platform-specific TXT parsing.
+## Protocol Version
+
+```text
+ac-lan-1
+```
 
 ## Control Messages
 
-All control messages use `LANEnvelope`:
-
-```json
-{
-  "protocolVersion": "dt-lan-1",
-  "messageID": "UUID",
-  "type": "hello",
-  "senderID": "UUID",
-  "sentAt": "ISO-8601 date",
-  "payload": {}
-}
-```
-
-Initial message types:
-
 - `hello`
-- `joinHub`
-- `leaveHub`
-- `hubSnapshot`
+- `joinSharedCloud`
+- `leaveSharedCloud`
+- `sharedCloudSnapshot`
 - `uploadIntent`
 - `uploadAccepted`
 - `uploadRejected`
 - `fileViewed`
 - `fileDeleted`
 
-## One-Time File Rule
+Every envelope carries a protocol version, message ID, message type, sender ID, timestamp, and typed payload.
 
-For a one-time file:
+## One-Time Drop Rule
 
-1. Sender chooses `visibleToDeviceIDs`.
-2. Diamond Cloud only shows the file to those devices and the sender's own sent state.
+For a One-Time Drop:
+
+1. The sender chooses `visibleToDeviceIDs`.
+2. Shared Cloud only exposes the file to those devices and the sender.
 3. A target device sends `fileViewed` when opening it.
-4. Diamond Cloud deletes the file when every device in `visibleToDeviceIDs` has viewed it.
-5. Devices that join Diamond Cloud later are not automatically added to the target set.
+4. Shared Cloud deletes the file after every selected target has opened it.
+5. Devices joining later are not automatically added to the target set.
 
-This is a Diamond Cloud retention rule, not DRM. It does not claim to prevent screenshots, external recording, or copying after viewing.
+This is a retention rule, not DRM. It does not prevent screenshots, external recording, or copying after the file is opened.

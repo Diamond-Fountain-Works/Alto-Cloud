@@ -25,18 +25,18 @@ struct Device: Identifiable, Hashable {
     var name: String
     var kind: DeviceKind
     var isLocal: Bool
-    var isHubHost: Bool
-    var isConnectedToHub: Bool
+    var isSharedCloudHost: Bool
+    var isConnectedToSharedCloud: Bool
 }
 
 enum FileMode: String, CaseIterable, Codable, Identifiable {
     case standard
-    case oneTime
+    case oneTimeDrop
 
     var id: String { rawValue }
 }
 
-struct HubFile: Identifiable, Hashable {
+struct SharedCloudFile: Identifiable, Hashable {
     let id: UUID
     var name: String
     var size: Int64
@@ -46,10 +46,10 @@ struct HubFile: Identifiable, Hashable {
     var visibleTo: Set<UUID>
     var viewedBy: Set<UUID>
 
-    var isOneTime: Bool { mode == .oneTime }
+    var isOneTimeDrop: Bool { mode == .oneTimeDrop }
 
     func isVisible(to deviceID: UUID) -> Bool {
-        !isOneTime || visibleTo.contains(deviceID) || uploadedBy == deviceID
+        !isOneTimeDrop || visibleTo.contains(deviceID) || uploadedBy == deviceID
     }
 
     func hasViewed(_ deviceID: UUID) -> Bool {
@@ -65,15 +65,15 @@ struct HubFile: Identifiable, Hashable {
     }
 }
 
-struct HubSession {
+struct SharedCloudSession {
     var isActive = false
-    var name = "Diamond Cloud"
+    var name = "Shared Cloud"
     var hostDeviceID: UUID?
     var storageFolder: URL
     var availableCapacity: Int64
     var quota: Int64
     var rememberSettings = false
-    var files: [HubFile] = []
+    var files: [SharedCloudFile] = []
 
     var usedCapacity: Int64 {
         files.reduce(0) { $0 + $1.size }
@@ -87,5 +87,5 @@ struct HubSession {
 enum SidebarSelection: Hashable {
     case overview
     case peer(UUID)
-    case hub
+    case sharedCloud
 }

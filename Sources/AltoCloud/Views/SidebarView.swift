@@ -6,9 +6,9 @@ struct SidebarView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             VStack(alignment: .leading, spacing: 6) {
-                Label("Diamond Transfer", systemImage: "diamond.fill")
+                Label("Alto Cloud", systemImage: "cloud.fill")
                     .font(.title3.weight(.semibold))
-                Text("LAN transfer console")
+                Text("Nearby sharing, no internet")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -24,7 +24,7 @@ struct SidebarView: View {
                 store.sidebarSelection = .overview
             }
 
-            SidebarSectionTitle("Nearby Devices")
+            SidebarSectionTitle("Quick Send")
             VStack(spacing: 4) {
                 ForEach(store.peerDevices) { device in
                     DeviceSidebarRow(
@@ -36,18 +36,18 @@ struct SidebarView: View {
                 }
             }
 
-            SidebarSectionTitle("Diamond Cloud")
-            if store.hubSession.isActive, let host = store.hubHost {
+            SidebarSectionTitle("Shared Cloud")
+            if store.sharedCloudSession.isActive, let host = store.sharedCloudHost {
                 SidebarButton(
-                    title: store.hubSession.name,
+                    title: store.sharedCloudSession.name,
                     subtitle: "Host: \(host.name)",
                     systemImage: "externaldrive.connected.to.line.below",
-                    isSelected: store.sidebarSelection == .hub
+                    isSelected: store.sidebarSelection == .sharedCloud
                 ) {
-                    store.sidebarSelection = .hub
+                    store.sidebarSelection = .sharedCloud
                 }
             } else {
-                EmptySidebarNote(text: "No Diamond Cloud session is broadcasting")
+                EmptySidebarNote(text: "No Shared Cloud is broadcasting")
             }
 
             Spacer()
@@ -101,10 +101,10 @@ private struct DeviceSidebarRow: View {
         if device.isLocal {
             return "This Mac"
         }
-        if device.isConnectedToHub {
-            return "Connected to Diamond Cloud"
+        if device.isConnectedToSharedCloud {
+            return "Connected to Shared Cloud"
         }
-        return "Direct peer"
+        return "Quick Send available"
     }
 }
 

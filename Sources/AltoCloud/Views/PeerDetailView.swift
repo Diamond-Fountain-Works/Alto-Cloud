@@ -13,19 +13,19 @@ struct PeerDetailView: View {
             if let device {
                 HeaderBlock(
                     title: device.name,
-                    subtitle: device.isLocal ? "This device can act as a direct peer or host Diamond Cloud." : "Discovered as a nearby app device on the same Wi-Fi."
+                    subtitle: device.isLocal ? "This device supports Quick Send and can host a Shared Cloud." : "Discovered as a nearby Alto Cloud device on the same Wi-Fi."
                 )
 
                 HStack(alignment: .top, spacing: 16) {
                     VStack(alignment: .leading, spacing: 12) {
-                        Label(device.isConnectedToHub ? "Connected to Diamond Cloud" : "Available for direct transfer", systemImage: device.kind.symbolName)
+                        Label(device.isConnectedToSharedCloud ? "Connected to Shared Cloud" : "Available for Quick Send", systemImage: device.kind.symbolName)
                             .font(.title3.weight(.medium))
 
                         if !device.isLocal {
-                            Button(device.isConnectedToHub ? "Leave Diamond Cloud" : "Join Diamond Cloud") {
+                            Button(device.isConnectedToSharedCloud ? "Leave Shared Cloud" : "Join Shared Cloud") {
                                 store.toggleConnection(for: device.id)
                             }
-                            .disabled(!store.hubSession.isActive)
+                            .disabled(!store.sharedCloudSession.isActive)
                         }
                     }
                     .padding(18)
@@ -35,10 +35,10 @@ struct PeerDetailView: View {
                     VStack(alignment: .leading, spacing: 12) {
                         Text("Endpoint")
                             .font(.headline)
-                        DetailLine(title: "Role", value: device.isHubHost ? "Diamond Cloud" : "Peer")
+                        DetailLine(title: "Role", value: device.isSharedCloudHost ? "Shared Cloud" : "Quick Send")
                         DetailLine(title: "Kind", value: device.kind.rawValue)
                         DetailLine(title: "Local", value: device.isLocal ? "Yes" : "No")
-                        DetailLine(title: "Cloud member", value: device.isConnectedToHub ? "Yes" : "No")
+                        DetailLine(title: "Shared Cloud member", value: device.isConnectedToSharedCloud ? "Yes" : "No")
                     }
                     .padding(18)
                     .frame(maxWidth: 360, alignment: .leading)

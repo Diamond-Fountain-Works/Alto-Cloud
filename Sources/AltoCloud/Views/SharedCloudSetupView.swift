@@ -1,11 +1,11 @@
 import SwiftUI
 
-struct HubSetupView: View {
+struct SharedCloudSetupView: View {
     @ObservedObject var store: DemoStore
 
     private var quotaGB: Binding<Double> {
         Binding(
-            get: { Double(store.hubSession.quota) / 1_000_000_000 },
+            get: { Double(store.sharedCloudSession.quota) / 1_000_000_000 },
             set: { store.setQuota(gigabytes: $0) }
         )
     }
@@ -14,14 +14,14 @@ struct HubSetupView: View {
         VStack(alignment: .leading, spacing: 18) {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Diamond Cloud Setup")
+                    Text("Shared Cloud Setup")
                         .font(.headline)
-                    Text("Choose how much local disk this Diamond Cloud session can use.")
+                    Text("Choose how much local disk this Shared Cloud session can use.")
                         .foregroundStyle(.secondary)
                 }
                 Spacer()
-                Button(store.hubSession.isActive ? "Stop Cloud" : "Start Cloud") {
-                    store.toggleHub()
+                Button(store.sharedCloudSession.isActive ? "Stop Shared Cloud" : "Start Shared Cloud") {
+                    store.toggleSharedCloud()
                 }
                 .buttonStyle(.borderedProminent)
             }
@@ -30,9 +30,9 @@ struct HubSetupView: View {
 
             VStack(alignment: .leading, spacing: 14) {
                 HStack(spacing: 12) {
-                    SetupMetric(title: "Available", value: ByteFormat.string(store.hubSession.availableCapacity))
-                    SetupMetric(title: "Quota", value: ByteFormat.string(store.hubSession.quota))
-                    SetupMetric(title: "Used", value: ByteFormat.string(store.hubSession.usedCapacity))
+                    SetupMetric(title: "Available", value: ByteFormat.string(store.sharedCloudSession.availableCapacity))
+                    SetupMetric(title: "Quota", value: ByteFormat.string(store.sharedCloudSession.quota))
+                    SetupMetric(title: "Used", value: ByteFormat.string(store.sharedCloudSession.usedCapacity))
                 }
 
                 VStack(alignment: .leading, spacing: 8) {
@@ -41,30 +41,30 @@ struct HubSetupView: View {
                             .font(.caption.weight(.semibold))
                             .foregroundStyle(.secondary)
                         Spacer()
-                        Text(ByteFormat.string(store.hubSession.quota))
+                        Text(ByteFormat.string(store.sharedCloudSession.quota))
                             .monospacedDigit()
                             .foregroundStyle(.secondary)
                     }
-                    Slider(value: quotaGB, in: 1...max(1, Double(store.hubSession.availableCapacity) / 1_000_000_000), step: 1)
-                    StorageMeter(used: store.hubSession.usedCapacity, quota: store.hubSession.quota)
+                    Slider(value: quotaGB, in: 1...max(1, Double(store.sharedCloudSession.availableCapacity) / 1_000_000_000), step: 1)
+                    StorageMeter(used: store.sharedCloudSession.usedCapacity, quota: store.sharedCloudSession.quota)
                 }
 
                 HStack(spacing: 10) {
                     Image(systemName: "folder")
                         .foregroundStyle(.secondary)
-                    Text(store.hubSession.storageFolder.path)
+                    Text(store.sharedCloudSession.storageFolder.path)
                         .font(.callout)
                         .lineLimit(1)
                         .truncationMode(.middle)
                     Spacer()
                     Button("Choose") {
-                        store.chooseHubFolder()
+                        store.chooseSharedCloudFolder()
                     }
                 }
                 .padding(10)
                 .background(.background.opacity(0.5), in: RoundedRectangle(cornerRadius: 7))
 
-                Toggle("Remember this Diamond Cloud folder and quota for this Mac", isOn: $store.hubSession.rememberSettings)
+                Toggle("Remember this Shared Cloud folder and quota for this Mac", isOn: $store.sharedCloudSession.rememberSettings)
             }
         }
         .padding(18)

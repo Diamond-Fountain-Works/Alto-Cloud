@@ -4,17 +4,17 @@ import Foundation
 
 final class DemoStore: ObservableObject {
     @Published var devices: [Device] = []
-    @Published var hubSession: HubSession
+    @Published var sharedCloudSession: SharedCloudSession
     @Published var selectedDeviceID: UUID
     @Published var actingDeviceID: UUID
     @Published var sidebarSelection: SidebarSelection = .overview
     @Published var lanBrowserState = "Stopped"
     @Published var peerAdvertiseState = "Stopped"
-    @Published var hubAdvertiseState = "Stopped"
+    @Published var sharedCloudAdvertiseState = "Stopped"
 
     private let lanService: LANDiscoveryService
     private var cancellables: Set<AnyCancellable> = []
-    private var joinedHubDeviceIDs: Set<UUID> = []
+    private var joinedSharedCloudDeviceIDs: Set<UUID> = []
     private let sampleNames = [
         "Vacation Photo.heic",
         "Meeting Notes.txt",
@@ -26,8 +26,8 @@ final class DemoStore: ObservableObject {
     init() {
         lanService = LANDiscoveryService()
         let available = StorageService.availableCapacity()
-        hubSession = HubSession(
-            storageFolder: StorageService.defaultHubFolder(),
+        sharedCloudSession = SharedCloudSession(
+            storageFolder: StorageService.defaultSharedCloudFolder(),
             availableCapacity: available,
             quota: min(20 * 1_000_000_000, max(1_000_000_000, available / 8))
         )
@@ -46,73 +46,73 @@ final class DemoStore: ObservableObject {
     }
 
     var connectedDevices: [Device] {
-        devices.filter { $0.isConnectedToHub || $0.isHubHost }
+        devices.filter { $0.isConnectedToSharedCloud || $0.isSharedCloudHost }
     }
 
     var peerDevices: [Device] {
-        devices.filter { !$0.isHubHost }
+        devices.filter { !$0.isSharedCloudHost }
     }
 
-    var hubHost: Device? {
-        devices.first(where: { $0.id == hubSession.hostDeviceID }) ?? devices.first(where: \.isHubHost)
+    var sharedCloudHost: Device? {
+        devices.first(where: { $0.id == sharedCloudSession.hostDeviceID }) ?? devices.first(where: \.isSharedCloudHost)
     }
 
-    func toggleHub() {
-        hubSession.isActive ? stopHub() : startHub()
+    func toggleSharedCloud() {
+        sharedCloudSession.isActive ? stopSharedCloud() : startSharedCloud()
     }
 
-    func startHub() {
-        let hostID = lanService.localHubID
-        hubSession.isActive = true
-        hubSession.hostDeviceID = hostID
-        sidebarSelection = .hub
-        joinedHubDeviceIDs.insert(hostID)
-        joinedHubDeviceIDs.insert(lanService.localPeerID)
-        lanService.startHubAdvertiser()
+    func startSharedCloud() {
+        let hostID = lanService.localSharedCloudID
+        sharedCloudSession.isActive = true
+        sharedCloudSession.hostDeviceID = hostID
+        sidebarSelection = .sharedCloud
+        joinedSharedCloudDeviceIDs.insert(hostID)
+        joinedSharedCloudDeviceIDs.insert(lanService.localPeerID)
+        lanService.startSharedCloudAdvertiser()
         rebuildDevices(from: lanService.discoveredNodes)
     }
 
-    func stopHub() {
-        hubSession.isActive = false
-        hubSession.hostDeviceID = nil
-        hubSession.files.removeAll()
-        joinedHubDeviceIDs.removeAll()
-        lanService.stopHubAdvertiser()
+    func stopSharedCloud() {
+        sharedCloudSession.isActive = false
+        sharedCloudSession.hostDeviceID = nil
+        sharedCloudSession.files.removeAll()
+        joinedSharedCloudDeviceIDs.removeAll()
+        lanService.stopSharedCloudAdvertiser()
         rebuildDevices(from: lanService.discoveredNodes)
         sidebarSelection = .overview
     }
 
     func setQuota(gigabytes: Double) {
         let bytes = Int64(gigabytes * 1_000_000_000)
-        let safetyReserve = min(10 * 1_000_000_000, hubSession.availableCapacity / 10)
-        hubSession.quota = min(max(bytes, 1_000_000_000), max(1_000_000_000, hubSession.availableCapacity - safetyReserve))
+        let safetyReserve = min(10 * 1_000_000_000, sharedCloudSession.availableCapacity / 10)
+        sharedCloudSession.quota = min(max(bytes, 1_000_000_000), max(1_000_000_000, sharedCloudSession.availableCapacity - safetyReserve))
     }
 
-    func chooseHubFolder() {
+    func chooseSharedCloudFolder() {
         let panel = NSOpenPanel()
         panel.canChooseFiles = false
         panel.canChooseDirectories = true
         panel.allowsMultipleSelection = false
-        panel.directoryURL = hubSession.storageFolder.deletingLastPathComponent()
+        panel.directoryURL = sharedCloudSession.storageFolder.deletingLastPathComponent()
         if panel.runModal() == .OK, let url = panel.url {
-            hubSession.storageFolder = url
+            sharedCloudSession.storageFolder = url
         }
     }
 
     func toggleConnection(for deviceID: UUID) {
-        guard let index = devices.firstIndex(where: { $0.id == deviceID }), !devices[index].isHubHost else {
+        guard let index = devices.firstIndex(where: { $0.id == deviceID }), !devices[index].isSharedCloudHost else {
             return
         }
-        if joinedHubDeviceIDs.contains(deviceID) {
-            joinedHubDeviceIDs.remove(deviceID)
+        if joinedSharedCloudDeviceIDs.contains(deviceID) {
+            joinedSharedCloudDeviceIDs.remove(deviceID)
         } else {
-            joinedHubDeviceIDs.insert(deviceID)
+            joinedSharedCloudDeviceIDs.insert(deviceID)
         }
         rebuildDevices(from: lanService.discoveredNodes)
     }
 
     func addSampleFile() {
-        let currentName = sampleNames[hubSession.files.count % sampleNames.count]
+        let currentName = sampleNames[sharedCloudSession.files.count % sampleNames.count]
         let connected = connectedDevices.map(\.id)
         addFile(
             name: currentName,
@@ -124,7 +124,7 @@ final class DemoStore: ObservableObject {
     }
 
     func addFile(name: String, size: Int64, mode: FileMode, uploadedBy: UUID, visibleTo: Set<UUID>) {
-        guard hubSession.isActive, hubSession.remainingQuota >= size else {
+        guard sharedCloudSession.isActive, sharedCloudSession.remainingQuota >= size else {
             NSSound.beep()
             return
         }
@@ -134,7 +134,7 @@ final class DemoStore: ObservableObject {
             visible = Set(connectedDevices.map(\.id))
         }
 
-        let file = HubFile(
+        let file = SharedCloudFile(
             id: UUID(),
             name: name,
             size: size,
@@ -144,30 +144,30 @@ final class DemoStore: ObservableObject {
             visibleTo: visible,
             viewedBy: []
         )
-        hubSession.files.insert(file, at: 0)
+        sharedCloudSession.files.insert(file, at: 0)
     }
 
     func markViewed(fileID: UUID, by deviceID: UUID) {
-        guard let index = hubSession.files.firstIndex(where: { $0.id == fileID }) else {
+        guard let index = sharedCloudSession.files.firstIndex(where: { $0.id == fileID }) else {
             return
         }
-        guard hubSession.files[index].isOneTime else {
+        guard sharedCloudSession.files[index].isOneTimeDrop else {
             return
         }
-        guard hubSession.files[index].visibleTo.contains(deviceID) else {
+        guard sharedCloudSession.files[index].visibleTo.contains(deviceID) else {
             return
         }
 
-        hubSession.files[index].viewedBy.insert(deviceID)
+        sharedCloudSession.files[index].viewedBy.insert(deviceID)
 
-        let file = hubSession.files[index]
+        let file = sharedCloudSession.files[index]
         if file.visibleTo.isSubset(of: file.viewedBy) {
-            hubSession.files.remove(at: index)
+            sharedCloudSession.files.remove(at: index)
         }
     }
 
     func removeFile(_ fileID: UUID) {
-        hubSession.files.removeAll { $0.id == fileID }
+        sharedCloudSession.files.removeAll { $0.id == fileID }
     }
 
     func deviceName(_ id: UUID) -> String {
@@ -190,9 +190,9 @@ final class DemoStore: ObservableObject {
             .receive(on: DispatchQueue.main)
             .assign(to: &$peerAdvertiseState)
 
-        lanService.$hubAdvertiseState
+        lanService.$sharedCloudAdvertiseState
             .receive(on: DispatchQueue.main)
-            .assign(to: &$hubAdvertiseState)
+            .assign(to: &$sharedCloudAdvertiseState)
     }
 
     private func rebuildDevices(from nodes: [LANNodeDescriptor]) {
@@ -202,20 +202,20 @@ final class DemoStore: ObservableObject {
                 name: lanService.localPeerNode.displayName,
                 kind: .mac,
                 isLocal: true,
-                isHubHost: false,
-                isConnectedToHub: joinedHubDeviceIDs.contains(lanService.localPeerID)
+                isSharedCloudHost: false,
+                isConnectedToSharedCloud: joinedSharedCloudDeviceIDs.contains(lanService.localPeerID)
             )
         ]
 
-        if hubSession.isActive {
+        if sharedCloudSession.isActive {
             next.append(
                 Device(
-                    id: lanService.localHubID,
-                    name: lanService.localHubNode.displayName,
+                    id: lanService.localSharedCloudID,
+                    name: lanService.localSharedCloudNode.displayName,
                     kind: .mac,
                     isLocal: true,
-                    isHubHost: true,
-                    isConnectedToHub: true
+                    isSharedCloudHost: true,
+                    isConnectedToSharedCloud: true
                 )
             )
         }
@@ -227,8 +227,8 @@ final class DemoStore: ObservableObject {
                     name: node.displayName,
                     kind: node.deviceKind,
                     isLocal: false,
-                    isHubHost: node.role == .hub,
-                    isConnectedToHub: joinedHubDeviceIDs.contains(node.id)
+                    isSharedCloudHost: node.role == .sharedCloud,
+                    isConnectedToSharedCloud: joinedSharedCloudDeviceIDs.contains(node.id)
                 )
             )
         }

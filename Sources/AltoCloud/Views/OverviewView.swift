@@ -8,16 +8,16 @@ struct OverviewView: View {
             VStack(alignment: .leading, spacing: 24) {
                 HeaderBlock(
                     title: "Control Center",
-                    subtitle: "Manage direct transfer, start Diamond Cloud, and set the storage boundary before devices join."
+                    subtitle: "Use Quick Send, start a Shared Cloud, and set its storage boundary before devices join."
                 )
 
                 LazyVGrid(columns: [GridItem(.adaptive(minimum: 210), spacing: 14)], spacing: 14) {
                     StatusSummary(icon: "dot.radiowaves.left.and.right", title: "Discovery", value: store.lanBrowserState, detail: LANProtocol.serviceType)
-                    StatusSummary(icon: "arrow.left.arrow.right", title: "Peer", value: store.peerAdvertiseState, detail: "Direct target is always published")
-                    StatusSummary(icon: "externaldrive.connected.to.line.below", title: "Diamond Cloud", value: store.hubSession.isActive ? "Active" : "Stopped", detail: "Shared local session")
+                    StatusSummary(icon: "arrow.left.arrow.right", title: "Quick Send", value: store.peerAdvertiseState, detail: "Nearby target is always published")
+                    StatusSummary(icon: "externaldrive.connected.to.line.below", title: "Shared Cloud", value: store.sharedCloudSession.isActive ? "Active" : "Stopped", detail: "Shared local session")
                 }
 
-                HubSetupView(store: store)
+                SharedCloudSetupView(store: store)
             }
             .padding(28)
             .frame(maxWidth: 1040, alignment: .leading)

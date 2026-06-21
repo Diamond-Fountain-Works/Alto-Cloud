@@ -2,19 +2,19 @@ import AppKit
 import SwiftUI
 
 @main
-struct DiamondTransferApp: App {
+struct AltoCloudApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @StateObject private var store = DemoStore()
 
     var body: some Scene {
-        WindowGroup("Diamond Transfer", id: "main") {
+        WindowGroup("Alto Cloud", id: "main") {
             ContentView(store: store)
                 .frame(minWidth: 900, minHeight: 660)
         }
         .commands {
-            CommandMenu("Diamond Cloud") {
-                Button(store.hubSession.isActive ? "Stop Diamond Cloud" : "Start Diamond Cloud") {
-                    store.toggleHub()
+            CommandMenu("Shared Cloud") {
+                Button(store.sharedCloudSession.isActive ? "Stop Shared Cloud" : "Start Shared Cloud") {
+                    store.toggleSharedCloud()
                 }
                 .keyboardShortcut("h", modifiers: [.command, .shift])
 
@@ -22,7 +22,7 @@ struct DiamondTransferApp: App {
                     store.addSampleFile()
                 }
                 .keyboardShortcut("u", modifiers: [.command])
-                .disabled(!store.hubSession.isActive)
+                .disabled(!store.sharedCloudSession.isActive)
             }
         }
 
@@ -53,7 +53,7 @@ struct MenuBarStatusView: View {
     @Environment(\.openWindow) private var openWindow
 
     var body: some View {
-        Button("Show Diamond Transfer") {
+        Button("Show Alto Cloud") {
             NSApp.setActivationPolicy(.regular)
             openWindow(id: "main")
             NSApp.activate(ignoringOtherApps: true)
@@ -61,24 +61,24 @@ struct MenuBarStatusView: View {
 
         Divider()
 
-        Button(store.hubSession.isActive ? "Stop Diamond Cloud" : "Start Diamond Cloud") {
-            store.toggleHub()
+        Button(store.sharedCloudSession.isActive ? "Stop Shared Cloud" : "Start Shared Cloud") {
+            store.toggleSharedCloud()
         }
 
         Button("Add Sample File") {
             store.addSampleFile()
         }
-        .disabled(!store.hubSession.isActive)
+        .disabled(!store.sharedCloudSession.isActive)
 
         Divider()
 
         Text("Browser: \(store.lanBrowserState)")
         Text("Peer: \(store.peerAdvertiseState)")
-        Text("Cloud: \(store.hubAdvertiseState)")
+        Text("Shared Cloud: \(store.sharedCloudAdvertiseState)")
 
         Divider()
 
-        Button("Quit Diamond Transfer") {
+        Button("Quit Alto Cloud") {
             NSApplication.shared.terminate(nil)
         }
     }
@@ -92,7 +92,7 @@ struct MenuBarLogo: View {
                 .scaledToFit()
                 .frame(width: 16, height: 16)
         } else {
-            Image(systemName: "diamond")
+            Image(systemName: "cloud")
         }
     }
 

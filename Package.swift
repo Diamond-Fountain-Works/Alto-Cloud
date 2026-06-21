@@ -3,17 +3,17 @@
 import PackageDescription
 
 let package = Package(
-    name: "DiamondTransfer",
+    name: "AltoCloud",
     platforms: [
         .macOS(.v14)
     ],
     products: [
-        .executable(name: "DiamondTransfer", targets: ["DiamondTransfer"])
+        .executable(name: "AltoCloud", targets: ["AltoCloud"])
     ],
     targets: [
         .executableTarget(
-            name: "DiamondTransfer",
-            path: "Sources/DiamondTransfer"
+            name: "AltoCloud",
+            path: "Sources/AltoCloud"
         )
     ]
 )

@@ -3,8 +3,8 @@ import SwiftUI
 struct FileListView: View {
     @ObservedObject var store: DemoStore
 
-    private var visibleFiles: [HubFile] {
-        store.hubSession.files.filter { $0.isVisible(to: store.actingDeviceID) }
+    private var visibleFiles: [SharedCloudFile] {
+        store.sharedCloudSession.files.filter { $0.isVisible(to: store.actingDeviceID) }
     }
 
     var body: some View {
@@ -13,7 +13,7 @@ struct FileListView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("File Queue")
                         .font(.headline)
-                    Text("\(visibleFiles.count) visible of \(store.hubSession.files.count) files in Diamond Cloud")
+                    Text("\(visibleFiles.count) visible of \(store.sharedCloudSession.files.count) files in Shared Cloud")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -48,13 +48,13 @@ struct FileListView: View {
 
 private struct FileRowView: View {
     @ObservedObject var store: DemoStore
-    var file: HubFile
+    var file: SharedCloudFile
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .center, spacing: 12) {
-                Image(systemName: file.isOneTime ? "flame.fill" : "doc.fill")
-                    .foregroundStyle(file.isOneTime ? .red : .blue)
+                Image(systemName: file.isOneTimeDrop ? "flame.fill" : "doc.fill")
+                    .foregroundStyle(file.isOneTimeDrop ? .red : .blue)
                     .frame(width: 24)
 
                 VStack(alignment: .leading, spacing: 4) {
@@ -62,8 +62,8 @@ private struct FileRowView: View {
                         Text(file.name)
                             .font(.headline)
                             .lineLimit(1)
-                        if file.isOneTime {
-                            Text("一次性文件")
+                        if file.isOneTimeDrop {
+                            Text("One-Time Drop")
                                 .font(.caption.weight(.semibold))
                                 .foregroundStyle(.red)
                         }
@@ -74,7 +74,7 @@ private struct FileRowView: View {
                 }
                 Spacer()
                 Menu {
-                    Button("Delete from Diamond Cloud", role: .destructive) {
+                    Button("Delete from Shared Cloud", role: .destructive) {
                         store.removeFile(file.id)
                     }
                 } label: {
@@ -83,7 +83,7 @@ private struct FileRowView: View {
                 .menuStyle(.button)
             }
 
-            if file.isOneTime {
+            if file.isOneTimeDrop {
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
                         Text("Viewed \(file.viewedTargetCount)/\(file.targetCount)")
@@ -103,12 +103,12 @@ private struct FileRowView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 Spacer()
-                if file.isOneTime, file.visibleTo.contains(store.actingDeviceID) {
+                if file.isOneTimeDrop, file.visibleTo.contains(store.actingDeviceID) {
                     Button(file.hasViewed(store.actingDeviceID) ? "Opened" : "Open") {
                         store.markViewed(fileID: file.id, by: store.actingDeviceID)
                     }
                     .disabled(file.hasViewed(store.actingDeviceID))
-                } else if !file.isOneTime {
+                } else if !file.isOneTimeDrop {
                     Button("Download") {}
                 } else {
                     Text("Not visible to this device")
@@ -125,7 +125,7 @@ private struct FileRowView: View {
 
 private struct FlowTags: View {
     var ids: [UUID]
-    var file: HubFile
+    var file: SharedCloudFile
     @ObservedObject var store: DemoStore
 
     var body: some View {

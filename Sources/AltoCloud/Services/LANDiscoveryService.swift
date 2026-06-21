@@ -4,22 +4,22 @@ import Network
 final class LANDiscoveryService: ObservableObject {
     @Published private(set) var discoveredNodes: [LANNodeDescriptor] = []
     @Published private(set) var peerAdvertiseState = "Stopped"
-    @Published private(set) var hubAdvertiseState = "Stopped"
+    @Published private(set) var sharedCloudAdvertiseState = "Stopped"
     @Published private(set) var browserState = "Stopped"
 
     let localPeerID: UUID
-    let localHubID: UUID
+    let localSharedCloudID: UUID
 
-    private let queue = DispatchQueue(label: "diamondtransfer.lan")
+    private let queue = DispatchQueue(label: "altocloud.lan")
     private let displayName: String
     private var browser: NWBrowser?
     private var peerListener: NWListener?
-    private var hubListener: NWListener?
+    private var sharedCloudListener: NWListener?
 
-    init(displayName: String = Host.current().localizedName ?? "Diamond Mac") {
+    init(displayName: String = Host.current().localizedName ?? "Alto Mac") {
         self.displayName = displayName
         self.localPeerID = UUID()
-        self.localHubID = UUID()
+        self.localSharedCloudID = UUID()
         startBrowser()
         startPeerAdvertiser()
     }
@@ -36,35 +36,35 @@ final class LANDiscoveryService: ObservableObject {
         )
     }
 
-    var localHubNode: LANNodeDescriptor {
+    var localSharedCloudNode: LANNodeDescriptor {
         LANNodeDescriptor(
-            id: localHubID,
-            role: .hub,
-            displayName: "Diamond Cloud on \(displayName)",
+            id: localSharedCloudID,
+            role: .sharedCloud,
+            displayName: "Shared Cloud on \(displayName)",
             deviceKind: .mac,
             protocolVersion: LANProtocol.version,
-            endpointName: "local-hub",
+            endpointName: "local-shared-cloud",
             discoveredAt: Date()
         )
     }
 
-    func startHubAdvertiser() {
-        guard hubListener == nil else { return }
-        hubListener = makeAdvertiser(for: localHubNode)
-        hubListener?.stateUpdateHandler = { [weak self] state in
-            self?.publishState(state, keyPath: \.hubAdvertiseState)
+    func startSharedCloudAdvertiser() {
+        guard sharedCloudListener == nil else { return }
+        sharedCloudListener = makeAdvertiser(for: localSharedCloudNode)
+        sharedCloudListener?.stateUpdateHandler = { [weak self] state in
+            self?.publishState(state, keyPath: \.sharedCloudAdvertiseState)
         }
-        hubListener?.newConnectionHandler = { [weak self] connection in
-            self?.accept(connection, as: self?.localHubNode)
+        sharedCloudListener?.newConnectionHandler = { [weak self] connection in
+            self?.accept(connection, as: self?.localSharedCloudNode)
         }
-        hubListener?.start(queue: queue)
+        sharedCloudListener?.start(queue: queue)
     }
 
-    func stopHubAdvertiser() {
-        hubListener?.cancel()
-        hubListener = nil
+    func stopSharedCloudAdvertiser() {
+        sharedCloudListener?.cancel()
+        sharedCloudListener = nil
         DispatchQueue.main.async {
-            self.hubAdvertiseState = "Stopped"
+            self.sharedCloudAdvertiseState = "Stopped"
         }
     }
 
@@ -113,8 +113,8 @@ final class LANDiscoveryService: ObservableObject {
             return listener
         } catch {
             DispatchQueue.main.async {
-                if node.role == .hub {
-                    self.hubAdvertiseState = "Failed: \(error.localizedDescription)"
+                if node.role == .sharedCloud {
+                    self.sharedCloudAdvertiseState = "Failed: \(error.localizedDescription)"
                 } else {
                     self.peerAdvertiseState = "Failed: \(error.localizedDescription)"
                 }
@@ -143,7 +143,7 @@ final class LANDiscoveryService: ObservableObject {
 
     private func updateResults(_ results: Set<NWBrowser.Result>) {
         let nodes = results.compactMap(parseNode)
-            .filter { $0.id != localPeerID && $0.id != localHubID }
+            .filter { $0.id != localPeerID && $0.id != localSharedCloudID }
             .sorted { lhs, rhs in
                 if lhs.role != rhs.role {
                     return lhs.role.rawValue < rhs.role.rawValue
@@ -179,14 +179,14 @@ final class LANDiscoveryService: ObservableObject {
     }
 
     private func serviceName(for node: LANNodeDescriptor) -> String {
-        let role = node.role == .hub ? "hub" : "peer"
+        let role = node.role == .sharedCloud ? "sharedCloud" : "peer"
         let compactID = node.id.uuidString.replacingOccurrences(of: "-", with: "")
-        return "DT|\(role)|\(compactID)|\(node.deviceKind.rawValue)"
+        return "AC|\(role)|\(compactID)|\(node.deviceKind.rawValue)"
     }
 
     private func parseServiceName(_ name: String) -> (role: String, id: UUID, kind: DeviceKind, displayName: String)? {
         let parts = name.split(separator: "|").map(String.init)
-        guard parts.count == 4, parts[0] == "DT" else {
+        guard parts.count == 4, parts[0] == "AC" else {
             return nil
         }
 
@@ -210,7 +210,7 @@ final class LANDiscoveryService: ObservableObject {
         let role = parts[1]
         let kind = DeviceKind(rawValue: parts[3]) ?? .mac
         let short = compactID.prefix(6).uppercased()
-        let displayName = role == "hub" ? "Diamond Cloud \(short)" : "Diamond Transfer \(short)"
+        let displayName = role == "sharedCloud" ? "Shared Cloud \(short)" : "Alto Cloud \(short)"
         return (role, id, kind, displayName)
     }
 
