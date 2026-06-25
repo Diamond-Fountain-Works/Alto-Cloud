@@ -62,6 +62,12 @@ ac-lan-1
 - `uploadRejected`
 - `fileViewed`
 - `fileDeleted`
+- `scriptRunIntent`
+- `scriptRunAccepted`
+- `scriptRunRejected`
+- `scriptRunStarted`
+- `scriptRunFinished`
+- `scriptRunCancelled`
 
 Every envelope carries a protocol version, message ID, message type, sender ID, timestamp, and typed payload.
 
@@ -76,3 +82,16 @@ For a One-Time Drop:
 5. Devices joining later are not automatically added to the target set.
 
 This is a retention rule, not DRM. It does not prevent screenshots, external recording, or copying after the file is opened.
+
+## Script Relay Rule
+
+For a Python script task:
+
+1. The sender chooses a target device and requested permissions.
+2. The sender sends `scriptRunIntent` with the script body, task ID, permission set, and max runtime.
+3. The target device shows a local approval prompt before execution.
+4. If approved, the target sends `scriptRunAccepted`, then `scriptRunStarted`.
+5. The target executes inside an app-owned sandbox and streams or returns log tails.
+6. The target sends `scriptRunFinished` with final status and log tail, or `scriptRunRejected` / `scriptRunCancelled`.
+
+The current macOS prototype models this state machine in UI only. Real iPadOS execution requires an embedded Python runtime, sandboxed task directories, scoped file access, runtime limits, and source validation.

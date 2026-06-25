@@ -5,6 +5,7 @@ import Foundation
 final class DemoStore: ObservableObject {
     @Published var devices: [Device] = []
     @Published var sharedCloudSession: SharedCloudSession
+    @Published var scriptRelaySession = ScriptRelaySession()
     @Published var selectedDeviceID: UUID
     @Published var actingDeviceID: UUID
     @Published var sidebarSelection: SidebarSelection = .overview
@@ -55,6 +56,23 @@ final class DemoStore: ObservableObject {
 
     var sharedCloudHost: Device? {
         devices.first(where: { $0.id == sharedCloudSession.hostDeviceID }) ?? devices.first(where: \.isSharedCloudHost)
+    }
+
+    var scriptCapableDevices: [Device] {
+        devices.filter { $0.supportsPythonExecution && !$0.isSharedCloudHost }
+    }
+
+    var scriptRelayStatus: String {
+        guard scriptRelaySession.isEnabled else {
+            return "Disabled"
+        }
+        if scriptRelaySession.tasks.contains(where: { $0.status == .running }) {
+            return "Running"
+        }
+        if scriptRelaySession.tasks.contains(where: { $0.status == .queued || $0.status == .pendingApproval }) {
+            return "Queued"
+        }
+        return "Ready"
     }
 
     func toggleSharedCloud() {
@@ -170,8 +188,92 @@ final class DemoStore: ObservableObject {
         sharedCloudSession.files.removeAll { $0.id == fileID }
     }
 
+    func submitPythonScript(name: String, body: String, targetDeviceID: UUID, permissions: Set<ScriptPermission>) {
+        let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedBody = body.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard scriptRelaySession.isEnabled, !trimmedName.isEmpty, !trimmedBody.isEmpty else {
+            NSSound.beep()
+            return
+        }
+        guard let target = devices.first(where: { $0.id == targetDeviceID }), target.supportsPythonExecution else {
+            NSSound.beep()
+            return
+        }
+
+        let status: ScriptTaskStatus = scriptRelaySession.requireManualApproval ? .pendingApproval : .queued
+        let task = ScriptExecutionTask(
+            id: UUID(),
+            name: trimmedName,
+            sourceDeviceID: actingDeviceID,
+            targetDeviceID: targetDeviceID,
+            scriptBody: trimmedBody,
+            permissions: permissions,
+            status: status,
+            createdAt: Date(),
+            startedAt: nil,
+            finishedAt: nil,
+            logLines: [
+                "Created by \(deviceName(actingDeviceID))",
+                "Target: \(target.name)",
+                "Runtime limit: \(scriptRelaySession.maxRuntimeSeconds)s"
+            ]
+        )
+        scriptRelaySession.tasks.insert(task, at: 0)
+    }
+
+    func approveScriptTask(_ taskID: UUID) {
+        updateScriptTask(taskID) { task in
+            guard task.status == .pendingApproval else {
+                return
+            }
+            task.status = .queued
+            task.logLines.append("Approved on \(deviceName(task.targetDeviceID))")
+        }
+    }
+
+    func rejectScriptTask(_ taskID: UUID) {
+        updateScriptTask(taskID) { task in
+            guard task.status == .pendingApproval else {
+                return
+            }
+            task.status = .rejected
+            task.finishedAt = Date()
+            task.logLines.append("Rejected before execution")
+        }
+    }
+
+    func runScriptTask(_ taskID: UUID) {
+        updateScriptTask(taskID) { task in
+            guard task.status == .queued else {
+                return
+            }
+            task.status = .running
+            task.startedAt = Date()
+            task.logLines.append("Starting sandboxed Python runtime")
+            task.logLines.append("Permissions: \(permissionSummary(task.permissions))")
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) { [weak self] in
+            self?.finishScriptTask(taskID)
+        }
+    }
+
+    func removeScriptTask(_ taskID: UUID) {
+        scriptRelaySession.tasks.removeAll { $0.id == taskID }
+    }
+
     func deviceName(_ id: UUID) -> String {
         devices.first(where: { $0.id == id })?.name ?? "Unknown device"
+    }
+
+    func permissionSummary(_ permissions: Set<ScriptPermission>) -> String {
+        if permissions.isEmpty {
+            return "No elevated permissions"
+        }
+        return permissions
+            .map(\.title)
+            .sorted()
+            .joined(separator: ", ")
     }
 
     private func bindLANService() {
@@ -236,6 +338,25 @@ final class DemoStore: ObservableObject {
         devices = next
         if !devices.contains(where: { $0.id == actingDeviceID }) {
             actingDeviceID = lanService.localPeerID
+        }
+    }
+
+    private func updateScriptTask(_ taskID: UUID, mutate: (inout ScriptExecutionTask) -> Void) {
+        guard let index = scriptRelaySession.tasks.firstIndex(where: { $0.id == taskID }) else {
+            return
+        }
+        mutate(&scriptRelaySession.tasks[index])
+    }
+
+    private func finishScriptTask(_ taskID: UUID) {
+        updateScriptTask(taskID) { task in
+            guard task.status == .running else {
+                return
+            }
+            task.status = .succeeded
+            task.finishedAt = Date()
+            task.logLines.append("stdout: script completed in prototype mode")
+            task.logLines.append("Result returned to \(deviceName(task.sourceDeviceID))")
         }
     }
 }

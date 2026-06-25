@@ -15,6 +15,7 @@ struct OverviewView: View {
                     StatusSummary(icon: "dot.radiowaves.left.and.right", title: "Discovery", value: store.lanBrowserState, detail: LANProtocol.serviceType)
                     StatusSummary(icon: "arrow.left.arrow.right", title: "Quick Send", value: store.peerAdvertiseState, detail: "Nearby target is always published")
                     StatusSummary(icon: "externaldrive.connected.to.line.below", title: "Shared Cloud", value: store.sharedCloudSession.isActive ? "Active" : "Stopped", detail: "Shared local session")
+                    StatusSummary(icon: "chevron.left.forwardslash.chevron.right", title: "Script Relay", value: store.scriptRelayStatus, detail: "Sandboxed Python task dispatch")
                 }
 
                 SharedCloudSetupView(store: store)

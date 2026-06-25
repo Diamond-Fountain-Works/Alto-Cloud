@@ -27,6 +27,30 @@ struct Device: Identifiable, Hashable {
     var isLocal: Bool
     var isSharedCloudHost: Bool
     var isConnectedToSharedCloud: Bool
+
+    var supportsPythonExecution: Bool {
+        switch kind {
+        case .mac, .iPad:
+            true
+        case .iPhone, .android, .windows:
+            false
+        }
+    }
+
+    var pythonRuntimeLabel: String {
+        switch kind {
+        case .mac:
+            "Local Python runtime"
+        case .iPad:
+            "Embedded iPadOS Python runtime"
+        case .iPhone:
+            "Planned mobile runtime"
+        case .android:
+            "Unsupported in prototype"
+        case .windows:
+            "Unsupported in prototype"
+        }
+    }
 }
 
 enum FileMode: String, CaseIterable, Codable, Identifiable {
@@ -84,8 +108,75 @@ struct SharedCloudSession {
     }
 }
 
+enum ScriptPermission: String, CaseIterable, Codable, Identifiable, Hashable {
+    case localFiles
+    case network
+    case aiModels
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .localFiles:
+            "Local files"
+        case .network:
+            "Network"
+        case .aiModels:
+            "AI models"
+        }
+    }
+}
+
+enum ScriptTaskStatus: String, Codable, Hashable {
+    case pendingApproval
+    case queued
+    case running
+    case succeeded
+    case rejected
+    case failed
+
+    var title: String {
+        switch self {
+        case .pendingApproval:
+            "Pending approval"
+        case .queued:
+            "Queued"
+        case .running:
+            "Running"
+        case .succeeded:
+            "Succeeded"
+        case .rejected:
+            "Rejected"
+        case .failed:
+            "Failed"
+        }
+    }
+}
+
+struct ScriptExecutionTask: Identifiable, Hashable {
+    let id: UUID
+    var name: String
+    var sourceDeviceID: UUID
+    var targetDeviceID: UUID
+    var scriptBody: String
+    var permissions: Set<ScriptPermission>
+    var status: ScriptTaskStatus
+    var createdAt: Date
+    var startedAt: Date?
+    var finishedAt: Date?
+    var logLines: [String]
+}
+
+struct ScriptRelaySession {
+    var isEnabled = true
+    var requireManualApproval = true
+    var maxRuntimeSeconds = 30
+    var tasks: [ScriptExecutionTask] = []
+}
+
 enum SidebarSelection: Hashable {
     case overview
     case peer(UUID)
     case sharedCloud
+    case scriptRelay
 }

@@ -30,6 +30,12 @@ enum LANMessageType: String, Codable {
     case uploadRejected
     case fileViewed
     case fileDeleted
+    case scriptRunIntent
+    case scriptRunAccepted
+    case scriptRunRejected
+    case scriptRunStarted
+    case scriptRunFinished
+    case scriptRunCancelled
 }
 
 struct LANEnvelope<Payload: Codable>: Codable {
@@ -62,4 +68,20 @@ struct LANUploadIntentPayload: Codable {
 struct LANFileViewedPayload: Codable {
     var fileID: UUID
     var deviceID: UUID
+}
+
+struct LANScriptRunIntentPayload: Codable {
+    var taskID: UUID
+    var name: String
+    var targetDeviceID: UUID
+    var scriptBody: String
+    var permissions: Set<ScriptPermission>
+    var maxRuntimeSeconds: Int
+}
+
+struct LANScriptRunStatusPayload: Codable {
+    var taskID: UUID
+    var deviceID: UUID
+    var status: ScriptTaskStatus
+    var logTail: [String]
 }

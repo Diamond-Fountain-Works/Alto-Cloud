@@ -104,6 +104,8 @@ struct TopStatusBar: View {
             "Device"
         case .sharedCloud:
             "Shared Cloud"
+        case .scriptRelay:
+            "Script Relay"
         }
     }
 }
@@ -150,6 +152,8 @@ private struct DetailRouterView: View {
             PeerDetailView(store: store, deviceID: id)
         case .sharedCloud:
             SharedCloudConsoleView(store: store)
+        case .scriptRelay:
+            ScriptRelayView(store: store)
         }
     }
 }

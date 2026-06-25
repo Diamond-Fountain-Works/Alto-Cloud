@@ -34,6 +34,7 @@ Most file-sharing tools are either one-to-one senders or internet cloud drives. 
 | Storage quota | Shows available disk space and lets the host cap session storage. |
 | Local folder | Stores shared files in a visible local folder chosen by the host. |
 | One-Time Drop | Limits visibility to selected devices and deletes after every target opens the file. |
+| Script Relay | Models Python task dispatch to trusted Mac/iPad execution nodes with approval, permissions, runtime limits, and log return. |
 | macOS menu bar | Closing the main window hides the Dock icon while the menu bar item stays alive. |
 
 ## Current Prototype
@@ -44,6 +45,7 @@ The macOS demo implements the LAN discovery foundation:
 - Always-on Quick Send peer advertisement
 - Shared Cloud advertisement while a shared session is active
 - Protocol messages for `hello`, `joinSharedCloud`, `uploadIntent`, `fileViewed`, and `fileDeleted`
+- Script Relay prototype UI for Python task dispatch, local approval, and log-return state
 - Native SwiftUI macOS shell with Dock and menu-bar behavior
 
 File payload transfer is still simulated in UI state. The next implementation step is the real control and payload pipeline:
@@ -66,9 +68,14 @@ One device starts a Shared Cloud. Other nearby devices can join the same local d
 
 The sender selects which devices can see a drop. Alto Cloud records open state for each selected recipient and removes the file after everyone in that target set has opened it.
 
+### Script Relay
+
+A sender can draft a Python script task, choose a trusted execution device, request scoped permissions, and receive execution logs. The current macOS prototype simulates the task lifecycle. Real iPadOS execution requires an embedded Python runtime, sandboxed working directory, manual approval, runtime limits, and file/network permission gates.
+
 ## Documentation
 
 - [中文功能介绍](docs/features.zh-CN.md)
+- [产品建设清单](docs/product-build-list.zh-CN.md)
 - [English feature overview](docs/features.en.md)
 - [日本語の機能紹介](docs/features.ja.md)
 - [LAN protocol draft](docs/lan-protocol.md)
@@ -96,6 +103,7 @@ env CLANG_MODULE_CACHE_PATH="$PWD/.build/clang-module-cache" SWIFT_MODULECACHE_P
 - Real TCP control channel
 - Real file-byte streaming
 - Chunked transfer and resume support
+- Script Relay protocol hardening and embedded Python runtime research
 - iOS client
 - Android client
 - Cross-platform protocol compatibility tests

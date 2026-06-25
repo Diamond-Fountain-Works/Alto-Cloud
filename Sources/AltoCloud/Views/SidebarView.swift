@@ -24,6 +24,15 @@ struct SidebarView: View {
                 store.sidebarSelection = .overview
             }
 
+            SidebarButton(
+                title: "Script Relay",
+                subtitle: "Python tasks across devices",
+                systemImage: "chevron.left.forwardslash.chevron.right",
+                isSelected: store.sidebarSelection == .scriptRelay
+            ) {
+                store.sidebarSelection = .scriptRelay
+            }
+
             SidebarSectionTitle("Quick Send")
             VStack(spacing: 4) {
                 ForEach(store.peerDevices) { device in
