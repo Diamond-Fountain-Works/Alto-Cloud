@@ -169,7 +169,7 @@ struct ScriptExecutionTask: Identifiable, Hashable {
 
 struct ScriptRelaySession {
     var isEnabled = true
-    var requireManualApproval = true
+    var requireManualApproval = false
     var maxRuntimeSeconds = 30
     var tasks: [ScriptExecutionTask] = []
 }

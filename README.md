@@ -75,7 +75,6 @@ A sender can draft a Python script task, choose a trusted execution device, requ
 ## Documentation
 
 - [中文功能介绍](docs/features.zh-CN.md)
-- [产品建设清单](docs/product-build-list.zh-CN.md)
 - [English feature overview](docs/features.en.md)
 - [日本語の機能紹介](docs/features.ja.md)
 - [LAN protocol draft](docs/lan-protocol.md)

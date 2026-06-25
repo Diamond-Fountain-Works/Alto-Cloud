@@ -219,6 +219,9 @@ final class DemoStore: ObservableObject {
             ]
         )
         scriptRelaySession.tasks.insert(task, at: 0)
+        if status == .queued {
+            runScriptTask(task.id)
+        }
     }
 
     func approveScriptTask(_ taskID: UUID) {

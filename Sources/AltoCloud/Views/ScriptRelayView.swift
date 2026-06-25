@@ -211,11 +211,11 @@ private struct ScriptRelaySafetyPanel: View {
             }
 
             HStack(alignment: .top, spacing: 18) {
-                Toggle("Manual approval", isOn: $store.scriptRelaySession.requireManualApproval)
+                Toggle("Require approval", isOn: $store.scriptRelaySession.requireManualApproval)
                 Stepper("Runtime \(store.scriptRelaySession.maxRuntimeSeconds)s", value: $store.scriptRelaySession.maxRuntimeSeconds, in: 5...300, step: 5)
             }
 
-            Text("The prototype models the dispatch, approval, and log-return flow. Real iPadOS execution needs an embedded Python runtime, a sandboxed working directory, and explicit file/network permission gates.")
+            Text("Trusted devices auto-run received scripts by default in this prototype. Turn on approval to require a local confirmation before execution. Real iPadOS execution needs an embedded Python runtime, a sandboxed working directory, and explicit file/network permission gates.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)

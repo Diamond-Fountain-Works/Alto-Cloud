@@ -1,3 +1,4 @@
 .build/
 dist/
 .DS_Store
+docs/product-build-list.zh-CN.md
